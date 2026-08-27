@@ -7,5 +7,10 @@
   "scripts": {
     "dev:web": "npm run dev --workspace=web",
     "build:web": "npm run build --workspace=web"
+  },
+  "allowScripts": {
+    "@google/genai": true,
+    "protobufjs": true,
+    "unrs-resolver": true
   }
 }
