@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+/*
+  Production-safe PDF.js worker.
+
+  Using pdfjs.version guarantees that the worker version
+  always matches the react-pdf PDF.js API version.
+*/
+pdfjs.GlobalWorkerOptions.workerSrc =
+  `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 type BoundingBox = {
   ymin: number;
@@ -37,12 +41,12 @@ export default function PdfViewer({
   width,
   onLoadSuccess,
 }: PdfViewerProps) {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(
-    null
-  );
+  const [pdfUrl, setPdfUrl] =
+    useState<string | null>(null);
 
   useEffect(() => {
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl =
+      URL.createObjectURL(file);
 
     setPdfUrl(objectUrl);
 
@@ -67,6 +71,12 @@ export default function PdfViewer({
       onLoadSuccess={({ numPages }) =>
         onLoadSuccess(numPages)
       }
+      onLoadError={(error) => {
+        console.error(
+          "PDF load error:",
+          error
+        );
+      }}
       loading={
         <div className="flex h-[700px] w-[520px] items-center justify-center bg-white">
           <p className="text-sm text-[#777980]">
@@ -76,63 +86,94 @@ export default function PdfViewer({
       }
       error={
         <div className="flex h-[700px] w-[520px] items-center justify-center bg-white p-8 text-center">
-          <p className="font-medium text-red-600">
-            Could not render the PDF.
-          </p>
+          <div>
+            <p className="font-medium text-red-600">
+              Could not render the PDF.
+            </p>
+
+            <p className="mt-2 text-xs text-[#777980]">
+              Please try uploading the document again.
+            </p>
+          </div>
         </div>
       }
     >
       <div className="flex flex-col gap-6">
-        {pages.map((pageNumber, index) => {
-          const region = regions.find(
-            (item) => item.page === pageNumber
-          );
+        {pages.map(
+          (pageNumber, index) => {
+            const region =
+              regions.find(
+                (item) =>
+                  item.page ===
+                  pageNumber
+              );
 
-          return (
-            <div key={pageNumber}>
-              <div className="mb-2 flex items-center justify-between px-1 text-xs text-[#6f7177]">
-                <span>
-                  {pages.length > 1
-                    ? `Answer page ${index + 1} of ${
-                        pages.length
-                      }`
-                    : "Answer page"}
-                </span>
+            return (
+              <div key={pageNumber}>
+                <div className="mb-2 flex items-center justify-between px-1 text-xs text-[#6f7177]">
+                  <span>
+                    {pages.length > 1
+                      ? `Answer page ${
+                          index + 1
+                        } of ${
+                          pages.length
+                        }`
+                      : "Answer page"}
+                  </span>
 
-                <span>PDF page {pageNumber}</span>
-              </div>
+                  <span>
+                    PDF page{" "}
+                    {pageNumber}
+                  </span>
+                </div>
 
-              <div className="relative overflow-visible bg-white shadow-xl">
-                <Page
-                  pageNumber={pageNumber}
-                  width={width}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  loading={
-                    <div
-                      style={{
-                        width,
-                        minHeight: 700,
-                      }}
-                      className="flex items-center justify-center bg-white"
-                    >
-                      <p className="text-sm text-[#777980]">
-                        Loading page {pageNumber}...
-                      </p>
-                    </div>
-                  }
-                />
-
-                {region && (
-                  <AnswerHighlight
-                    region={region}
-                    questionNumber={questionNumber}
+                <div className="relative overflow-visible bg-white shadow-xl">
+                  <Page
+                    pageNumber={
+                      pageNumber
+                    }
+                    width={width}
+                    renderTextLayer={
+                      false
+                    }
+                    renderAnnotationLayer={
+                      false
+                    }
+                    loading={
+                      <div
+                        style={{
+                          width,
+                          minHeight:
+                            700,
+                        }}
+                        className="flex items-center justify-center bg-white"
+                      >
+                        <p className="text-sm text-[#777980]">
+                          Loading page{" "}
+                          {
+                            pageNumber
+                          }
+                          ...
+                        </p>
+                      </div>
+                    }
                   />
-                )}
+
+                  {region && (
+                    <AnswerHighlight
+                      region={
+                        region
+                      }
+                      questionNumber={
+                        questionNumber
+                      }
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }
+        )}
       </div>
     </Document>
   );
@@ -147,16 +188,25 @@ function AnswerHighlight({
 }) {
   const { box } = region;
 
-  const top = `${box.ymin / 10}%`;
-  const left = `${box.xmin / 10}%`;
+  const top =
+    `${box.ymin / 10}%`;
 
-  const width = `${
-    (box.xmax - box.xmin) / 10
-  }%`;
+  const left =
+    `${box.xmin / 10}%`;
 
-  const height = `${
-    (box.ymax - box.ymin) / 10
-  }%`;
+  const width =
+    `${
+      (box.xmax -
+        box.xmin) /
+      10
+    }%`;
+
+  const height =
+    `${
+      (box.ymax -
+        box.ymin) /
+      10
+    }%`;
 
   return (
     <div
