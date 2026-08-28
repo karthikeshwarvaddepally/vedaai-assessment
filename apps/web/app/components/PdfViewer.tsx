@@ -35,18 +35,16 @@ export default function PdfViewer({
   width,
   onLoadSuccess,
 }: PdfViewerProps) {
-  const [pdfUrl, setPdfUrl] =
+  const [fileUrl, setFileUrl] =
     useState<string | null>(null);
 
-  /*
-    Each mapped page gets a tiny invisible marker placed
-    exactly at the TOP edge of the detected green region.
-
-    We scroll to this marker instead of scrolling to the
-    whole page or to the middle of the highlight.
-  */
   const highlightStartRefs =
     useRef<Record<number, HTMLDivElement | null>>({});
+
+  const isImage =
+    file.type === "image/png" ||
+    file.type === "image/jpeg" ||
+    /\.(png|jpe?g)$/i.test(file.name);
 
   const firstHighlightedPage = useMemo(() => {
     if (regions.length === 0) {
@@ -67,12 +65,18 @@ export default function PdfViewer({
     const objectUrl =
       URL.createObjectURL(file);
 
-    setPdfUrl(objectUrl);
+    setFileUrl(objectUrl);
 
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
   }, [file]);
+
+  useEffect(() => {
+    if (isImage) {
+      onLoadSuccess(1);
+    }
+  }, [isImage, onLoadSuccess]);
 
   const scrollToFirstHighlightStart = () => {
     if (firstHighlightedPage === null) {
@@ -99,12 +103,6 @@ export default function PdfViewer({
     });
   };
 
-  /*
-    Run whenever the selected question / mapped pages change.
-
-    Small delay gives React-PDF enough time to mount the page
-    and the marker before we perform the scroll.
-  */
   useEffect(() => {
     const timer = window.setTimeout(
       scrollToFirstHighlightStart,
@@ -121,19 +119,81 @@ export default function PdfViewer({
     width,
   ]);
 
-  if (!pdfUrl) {
+  if (!fileUrl) {
     return (
-      <div className="flex h-[700px] w-[520px] items-center justify-center bg-white">
+      <div
+        style={{ width }}
+        className="flex min-h-[700px] items-center justify-center bg-white"
+      >
         <p className="text-sm text-[#777980]">
-          Preparing PDF...
+          Preparing document...
         </p>
+      </div>
+    );
+  }
+
+  if (isImage) {
+    const region =
+      regions.find(
+        (item) => item.page === 1
+      );
+
+    return (
+      <div className="flex flex-col gap-6">
+        <div>
+          <div className="mb-2 flex items-center justify-between px-1 text-xs text-[#6f7177]">
+            <span>Answer page</span>
+            <span>Image</span>
+          </div>
+
+          <div
+            className="relative overflow-visible bg-white shadow-xl"
+            style={{ width }}
+          >
+            <img
+              src={fileUrl}
+              alt="Uploaded answer sheet"
+              className="block h-auto w-full"
+              onLoad={() => {
+                window.setTimeout(
+                  scrollToFirstHighlightStart,
+                  80
+                );
+              }}
+            />
+
+            {region && (
+              <>
+                <div
+                  ref={(element) => {
+                    highlightStartRefs.current[1] =
+                      element;
+                  }}
+                  className="pointer-events-none absolute left-0 h-px w-px"
+                  style={{
+                    top: `${region.box.ymin / 10}%`,
+                    scrollMarginTop: "72px",
+                  }}
+                  aria-hidden="true"
+                />
+
+                <AnswerHighlight
+                  region={region}
+                  questionNumber={
+                    questionNumber
+                  }
+                />
+              </>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <Document
-      file={pdfUrl}
+      file={fileUrl}
       onLoadSuccess={({ numPages }) =>
         onLoadSuccess(numPages)
       }
@@ -144,14 +204,20 @@ export default function PdfViewer({
         );
       }}
       loading={
-        <div className="flex h-[700px] w-[520px] items-center justify-center bg-white">
+        <div
+          style={{ width }}
+          className="flex min-h-[700px] items-center justify-center bg-white"
+        >
           <p className="text-sm text-[#777980]">
             Loading PDF...
           </p>
         </div>
       }
       error={
-        <div className="flex h-[700px] w-[520px] items-center justify-center bg-white p-8 text-center">
+        <div
+          style={{ width }}
+          className="flex min-h-[700px] items-center justify-center bg-white p-8 text-center"
+        >
           <div>
             <p className="font-medium text-red-600">
               Could not render the PDF.
@@ -241,13 +307,6 @@ export default function PdfViewer({
 
                   {region && (
                     <>
-                      {/*
-                        Invisible focus marker:
-                        positioned at the START of the green box.
-
-                        scrollMarginTop keeps a little breathing room
-                        below the dark Answer Sheet toolbar.
-                      */}
                       <div
                         ref={(element) => {
                           highlightStartRefs.current[
