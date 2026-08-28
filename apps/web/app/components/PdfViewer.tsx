@@ -1,14 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-/*
-  Production-safe PDF.js worker.
-
-  Using pdfjs.version guarantees that the worker version
-  always matches the react-pdf PDF.js API version.
-*/
 pdfjs.GlobalWorkerOptions.workerSrc =
   `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -44,6 +38,31 @@ export default function PdfViewer({
   const [pdfUrl, setPdfUrl] =
     useState<string | null>(null);
 
+  /*
+    Each mapped page gets a tiny invisible marker placed
+    exactly at the TOP edge of the detected green region.
+
+    We scroll to this marker instead of scrolling to the
+    whole page or to the middle of the highlight.
+  */
+  const highlightStartRefs =
+    useRef<Record<number, HTMLDivElement | null>>({});
+
+  const firstHighlightedPage = useMemo(() => {
+    if (regions.length === 0) {
+      return null;
+    }
+
+    const pageSet = new Set(pages);
+
+    const firstVisibleRegion =
+      regions.find((region) =>
+        pageSet.has(region.page)
+      );
+
+    return firstVisibleRegion?.page ?? null;
+  }, [pages, regions]);
+
   useEffect(() => {
     const objectUrl =
       URL.createObjectURL(file);
@@ -54,6 +73,53 @@ export default function PdfViewer({
       URL.revokeObjectURL(objectUrl);
     };
   }, [file]);
+
+  const scrollToFirstHighlightStart = () => {
+    if (firstHighlightedPage === null) {
+      return;
+    }
+
+    const target =
+      highlightStartRefs.current[
+        firstHighlightedPage
+      ];
+
+    if (!target) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+          inline: "nearest",
+        });
+      });
+    });
+  };
+
+  /*
+    Run whenever the selected question / mapped pages change.
+
+    Small delay gives React-PDF enough time to mount the page
+    and the marker before we perform the scroll.
+  */
+  useEffect(() => {
+    const timer = window.setTimeout(
+      scrollToFirstHighlightStart,
+      140
+    );
+
+    return () =>
+      window.clearTimeout(timer);
+  }, [
+    questionNumber,
+    firstHighlightedPage,
+    pages,
+    regions,
+    width,
+  ]);
 
   if (!pdfUrl) {
     return (
@@ -108,6 +174,10 @@ export default function PdfViewer({
                   pageNumber
               );
 
+            const isFirstHighlightedPage =
+              pageNumber ===
+              firstHighlightedPage;
+
             return (
               <div key={pageNumber}>
                 <div className="mb-2 flex items-center justify-between px-1 text-xs text-[#6f7177]">
@@ -139,6 +209,16 @@ export default function PdfViewer({
                     renderAnnotationLayer={
                       false
                     }
+                    onRenderSuccess={() => {
+                      if (
+                        isFirstHighlightedPage
+                      ) {
+                        window.setTimeout(
+                          scrollToFirstHighlightStart,
+                          80
+                        );
+                      }
+                    }}
                     loading={
                       <div
                         style={{
@@ -160,14 +240,37 @@ export default function PdfViewer({
                   />
 
                   {region && (
-                    <AnswerHighlight
-                      region={
-                        region
-                      }
-                      questionNumber={
-                        questionNumber
-                      }
-                    />
+                    <>
+                      {/*
+                        Invisible focus marker:
+                        positioned at the START of the green box.
+
+                        scrollMarginTop keeps a little breathing room
+                        below the dark Answer Sheet toolbar.
+                      */}
+                      <div
+                        ref={(element) => {
+                          highlightStartRefs.current[
+                            pageNumber
+                          ] = element;
+                        }}
+                        className="pointer-events-none absolute left-0 h-px w-px"
+                        style={{
+                          top: `${region.box.ymin / 10}%`,
+                          scrollMarginTop: "72px",
+                        }}
+                        aria-hidden="true"
+                      />
+
+                      <AnswerHighlight
+                        region={
+                          region
+                        }
+                        questionNumber={
+                          questionNumber
+                        }
+                      />
+                    </>
                   )}
                 </div>
               </div>

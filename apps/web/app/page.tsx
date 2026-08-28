@@ -5,25 +5,34 @@ import {
   ArrowLeft,
   Bell,
   BookOpen,
+  Building2,
   CheckCircle2,
   ChevronDown,
+  ChevronsRight,
   CircleHelp,
+  ClipboardCheck,
+  ClipboardList,
+  Clock3,
   Eye,
   FileQuestion,
   FileText,
   Grid2X2,
+  Home as HomeIcon,
   Library,
+  Menu,
   PanelLeft,
+  Presentation,
   Settings,
   Sparkles,
   Upload,
+  UserRound,
   X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
 
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const PdfViewer = dynamic(
   () => import("./components/PdfViewer"),
@@ -31,9 +40,7 @@ const PdfViewer = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex h-[700px] w-[520px] items-center justify-center bg-white">
-        <p className="text-sm text-[#777980]">
-          Loading PDF viewer...
-        </p>
+        <p className="text-sm text-[#777980]">Loading PDF viewer...</p>
       </div>
     ),
   }
@@ -58,24 +65,14 @@ type Question = {
   number: string;
   questionText: string;
   questionPage: number;
-
   maxMarks: number;
   awardedMarks: number;
-
   status: "answered" | "unanswered";
-
   answerSummary: string | null;
-
   regions: AnswerRegion[];
-
-  gradingConfidence:
-    | "high"
-    | "medium"
-    | "low";
-
+  gradingConfidence: "high" | "medium" | "low";
   strengths: string[];
   improvements: string[];
-
   feedback: string;
 };
 
@@ -88,14 +85,10 @@ type UnmatchedAnswer = {
 
 type AnalysisResult = {
   documentType: string;
-
   totalQuestions: number;
-
   totalMaximumMarks: number;
   totalAwardedMarks: number;
-
   questions: Question[];
-
   unmatchedAnswers?: UnmatchedAnswer[];
 };
 
@@ -142,7 +135,6 @@ export default function Home() {
       setError(
         "Only PDF, PNG, JPG, or JPEG files are allowed."
       );
-
       return false;
     }
 
@@ -150,12 +142,10 @@ export default function Home() {
       setError(
         "File size must be less than 10 MB."
       );
-
       return false;
     }
 
     setError("");
-
     return true;
   };
 
@@ -179,7 +169,6 @@ export default function Home() {
         }
 
         formData.append("mode", "combined");
-
         formData.append(
           "combinedBooklet",
           combinedFile
@@ -192,12 +181,10 @@ export default function Home() {
         }
 
         formData.append("mode", "separate");
-
         formData.append(
           "questionPaper",
           questionFile
         );
-
         formData.append(
           "answerSheet",
           answerFile
@@ -264,124 +251,33 @@ export default function Home() {
     );
   }
 
+  if (isProcessing) {
+    return <ProcessingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-[#f7f7f8] text-[#202124]">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-[230px] border-r border-[#ececef] bg-white lg:flex lg:flex-col">
-          <div className="flex h-16 items-center gap-3 border-b border-[#eeeeef] px-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ff6b35] text-white">
-              <Sparkles size={18} />
+    <>
+      {/* MOBILE UPLOAD */}
+      <div className="min-h-screen bg-[#efefef] px-3 py-3 text-[#262626] lg:hidden">
+        <MobileHeader />
+
+        <main className="mx-auto w-full max-w-[760px] pb-3 pt-5">
+          <section className="text-center">
+            <h1 className="px-4 text-[30px] font-bold leading-[1.12] tracking-[-0.035em] sm:text-[36px]">
+              Upload Question Paper
+              <br />
+              &amp; Answer Sheets
+            </h1>
+
+            <div className="mt-7 flex justify-center">
+              <TeacherOrbit />
             </div>
 
-            <span className="text-lg font-semibold">
-              VedaAI
-            </span>
-          </div>
-
-          <nav className="flex-1 space-y-2 p-4 text-sm">
-            <SidebarItem
-              icon={<Grid2X2 size={18} />}
-              label="Dashboard"
-            />
-
-            <SidebarItem
-              icon={<BookOpen size={18} />}
-              label="Assessments"
-              active
-            />
-
-            <SidebarItem
-              icon={<Library size={18} />}
-              label="Library"
-            />
-          </nav>
-
-          <div className="space-y-2 border-t border-[#eeeeef] p-4 text-sm">
-            <SidebarItem
-              icon={<CircleHelp size={18} />}
-              label="Help"
-            />
-
-            <SidebarItem
-              icon={<Settings size={18} />}
-              label="Settings"
-            />
-          </div>
-        </aside>
-
-        <main className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-16 items-center justify-between border-b border-[#ececef] bg-white px-5 lg:px-8">
-            <div className="flex items-center gap-3">
-              <PanelLeft
-                size={20}
-                className="lg:hidden"
-              />
-
-              <span className="font-medium">
-                Assessment Mapping
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Bell size={19} />
-
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eeeeef] text-xs font-semibold">
-                KV
-              </div>
-            </div>
-          </header>
-
-          <section className="flex flex-1 justify-center px-4 py-10 sm:px-6 lg:px-10">
-            <div className="w-full max-w-5xl">
-              <div className="mb-8">
-                <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                  Upload Assessment{" "}
-                  <span className="text-[#ff6b35]">
-                    Documents
-                  </span>
-                </h1>
-
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6f7177] sm:text-base">
-                  Upload the question paper and
-                  handwritten answer sheet, or use
-                  a combined question-and-answer
-                  booklet.
-                </p>
-              </div>
-
-              <div className="mb-7 inline-flex rounded-xl border border-[#e5e5e8] bg-white p-1">
-                <button
-                  onClick={() =>
-                    setUploadMode("separate")
-                  }
-                  className={`rounded-lg px-5 py-2.5 text-sm font-medium ${
-                    uploadMode === "separate"
-                      ? "bg-[#222222] text-white"
-                      : "text-[#686a70]"
-                  }`}
-                >
-                  Separate Files
-                </button>
-
-                <button
-                  onClick={() =>
-                    setUploadMode("combined")
-                  }
-                  className={`rounded-lg px-5 py-2.5 text-sm font-medium ${
-                    uploadMode === "combined"
-                      ? "bg-[#222222] text-white"
-                      : "text-[#686a70]"
-                  }`}
-                >
-                  Combined Booklet
-                </button>
-              </div>
-
+            <div className="mx-auto mt-6 w-full rounded-[28px] bg-[#ffede5]/55 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
               {uploadMode === "separate" ? (
-                <div className="grid gap-5 md:grid-cols-2">
-                  <UploadCard
+                <div className="space-y-3">
+                  <FigmaUploadZone
                     title="Question Paper"
-                    subtitle="Upload the printed question paper."
                     file={questionFile}
                     inputRef={questionInputRef}
                     onFile={(file) => {
@@ -394,9 +290,8 @@ export default function Home() {
                     }
                   />
 
-                  <UploadCard
+                  <FigmaUploadZone
                     title="Answer Sheet"
-                    subtitle="Upload the handwritten answer sheet."
                     file={answerFile}
                     inputRef={answerInputRef}
                     onFile={(file) => {
@@ -410,10 +305,128 @@ export default function Home() {
                   />
                 </div>
               ) : (
-                <div className="max-w-2xl">
-                  <UploadCard
-                    title="Question + Answer Booklet"
-                    subtitle="Upload one booklet containing printed questions and handwritten answers."
+                <FigmaUploadZone
+                  title="Combined Booklet"
+                  file={combinedFile}
+                  inputRef={combinedInputRef}
+                  onFile={(file) => {
+                    if (validateFile(file)) {
+                      setCombinedFile(file);
+                    }
+                  }}
+                  onRemove={() =>
+                    setCombinedFile(null)
+                  }
+                />
+              )}
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={!canStart}
+              onClick={handleStartMapping}
+              className={`mt-5 inline-flex min-w-[220px] items-center justify-center gap-4 rounded-full border-2 px-7 py-3 text-[17px] font-semibold transition ${
+                canStart
+                  ? "border-[#666666] bg-[#303030] text-white shadow-[0_8px_20px_rgba(0,0,0,0.14)]"
+                  : "cursor-not-allowed border-[#c6c6c6] bg-[#cfcfcf] text-white/80"
+              }`}
+            >
+              Start Mapping
+              <ArrowLeft
+                size={22}
+                className="rotate-180"
+              />
+            </button>
+
+            <p className="mx-auto mt-4 max-w-[560px] px-8 text-[14px] leading-5 text-[#777777]">
+              Once both files are uploaded, you’ll able to map answers with questions
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                setUploadMode(
+                  uploadMode === "separate"
+                    ? "combined"
+                    : "separate"
+                )
+              }
+              className="mt-2 text-[11px] font-semibold text-[#969696] underline decoration-[#c6c6c6] underline-offset-4"
+            >
+              {uploadMode === "separate"
+                ? "Use a combined booklet instead"
+                : "Use separate question & answer files"}
+            </button>
+          </section>
+        </main>
+      </div>
+
+      {/* DESKTOP UPLOAD */}
+      <div className="hidden lg:block">
+    <div className="min-h-screen bg-[#f4f4f4] p-4 text-[#262626]">
+      <div className="flex min-h-[calc(100vh-32px)] gap-4">
+        <FullSidebar />
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <UploadTopBar />
+
+          <main className="flex min-h-0 flex-1 items-start justify-center px-6 pb-5 pt-10">
+            <section className="w-full max-w-[1120px] text-center">
+              <h1 className="text-[34px] font-bold leading-tight tracking-[-0.035em] xl:text-[44px]">
+                Upload{" "}
+                <span className="rounded-[8px] bg-[#fff0e9] px-3 py-1.5 text-[#ff5424]">
+                  Question Paper &amp; Answer Sheets
+                </span>
+              </h1>
+
+              <p className="mt-4 text-[16px] font-medium text-[#4e4e4e]">
+                Upload both files to get started
+              </p>
+
+              <div className="mt-5 flex justify-center">
+                <TeacherOrbit />
+              </div>
+
+              <div className="mx-auto mt-6 w-full max-w-[900px] rounded-[26px] bg-[#ffede5]/55 p-3 shadow-[0_16px_42px_rgba(0,0,0,0.08)] ring-1 ring-black/5">
+                {uploadMode === "separate" ? (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <FigmaUploadZone
+                      title="Question Paper"
+                      file={questionFile}
+                      inputRef={questionInputRef}
+                      onFile={(file) => {
+                        if (validateFile(file)) {
+                          setQuestionFile(file);
+                        }
+                      }}
+                      onRemove={() =>
+                        setQuestionFile(null)
+                      }
+                    />
+
+                    <FigmaUploadZone
+                      title="Answer Sheet"
+                      file={answerFile}
+                      inputRef={answerInputRef}
+                      onFile={(file) => {
+                        if (validateFile(file)) {
+                          setAnswerFile(file);
+                        }
+                      }}
+                      onRemove={() =>
+                        setAnswerFile(null)
+                      }
+                    />
+                  </div>
+                ) : (
+                  <FigmaUploadZone
+                    title="Combined Booklet"
                     file={combinedFile}
                     inputRef={combinedInputRef}
                     onFile={(file) => {
@@ -425,61 +438,222 @@ export default function Home() {
                       setCombinedFile(null)
                     }
                   />
-                </div>
-              )}
+                )}
+              </div>
 
               {error && (
-                <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mx-auto mt-4 max-w-[900px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
-              <div className="mt-8 flex justify-end">
-                <button
-                  disabled={
-                    !canStart ||
-                    isProcessing
-                  }
-                  onClick={
-                    handleStartMapping
-                  }
-                  className={`min-w-[160px] rounded-xl px-6 py-3 text-sm font-semibold ${
-                    canStart &&
-                    !isProcessing
-                      ? "bg-[#242424] text-white"
-                      : "cursor-not-allowed bg-[#dddddf] text-[#999ba0]"
-                  }`}
-                >
-                  {isProcessing
-                    ? "Processing..."
-                    : "Start Mapping"}
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={!canStart}
+                onClick={handleStartMapping}
+                className={`mt-6 inline-flex items-center gap-3 rounded-full border-2 px-7 py-3 text-base font-semibold transition ${
+                  canStart
+                    ? "border-[#686868] bg-[#303030] text-white shadow-sm hover:bg-[#252525]"
+                    : "cursor-not-allowed border-[#c6c6c6] bg-[#d9d9d9] text-[#f6f6f6]"
+                }`}
+              >
+                Start Mapping
+                <ArrowLeft
+                  size={18}
+                  className="rotate-180"
+                />
+              </button>
 
-              {isProcessing && (
-                <div className="mt-12 flex flex-col items-center justify-center py-12 text-center">
-                  <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fff1eb] text-[#ff6b35]">
-                    <Sparkles
-                      size={26}
-                      className="animate-pulse"
-                    />
-                  </div>
+              <p className="mt-3 text-sm font-medium text-[#666666]">
+                Once both files are uploaded, you’ll be able to map answers with questions
+              </p>
 
-                  <h2 className="text-xl font-semibold">
-                    Extracting, mapping &
-                    grading...
-                  </h2>
-
-                  <p className="mt-2 text-sm text-[#7a7c82]">
-                    This may take a while.
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-        </main>
+              <button
+                type="button"
+                onClick={() =>
+                  setUploadMode(
+                    uploadMode === "separate"
+                      ? "combined"
+                      : "separate"
+                  )
+                }
+                className="mt-2 text-xs font-semibold text-[#9a9a9a] underline decoration-[#c9c9c9] underline-offset-4 transition hover:text-[#ff6331]"
+              >
+                {uploadMode === "separate"
+                  ? "Use a combined booklet instead"
+                  : "Use separate question & answer files"}
+              </button>
+            </section>
+          </main>
+        </div>
       </div>
     </div>
+      </div>
+    </>
+  );
+}
+
+function MobileHeader({
+  onBack,
+}: {
+  onBack?: () => void;
+}) {
+  return (
+    <header className="flex h-[72px] items-center justify-between rounded-[26px] bg-white px-4 shadow-[0_8px_26px_rgba(0,0,0,0.05)]">
+      <div className="flex min-w-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#252525]"
+          aria-label="Go back"
+        >
+          <ArrowLeft size={27} />
+        </button>
+
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-[#303030] text-white">
+            <span className="text-xl font-black tracking-[-0.08em]">
+              V
+            </span>
+          </div>
+
+          <span className="text-[24px] font-bold tracking-[-0.035em]">
+            VedaAI
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#f5f5f5]">
+          <Bell size={24} />
+          <span className="absolute right-1.5 top-0.5 h-3 w-3 rounded-full bg-[#ff5c2b] ring-2 ring-white" />
+        </button>
+
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#303030] text-white">
+          <UserRound size={19} />
+        </div>
+
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center text-[#252525]"
+          aria-label="Open menu"
+        >
+          <Menu size={29} />
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function UploadTopBar() {
+  return (
+    <header className="flex h-16 shrink-0 items-center justify-between rounded-[22px] bg-white px-5 shadow-[0_8px_28px_rgba(0,0,0,0.05)]">
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#252525] transition hover:bg-[#f4f4f4]"
+        >
+          <ArrowLeft size={25} />
+        </button>
+
+        <div className="flex items-center gap-2.5 text-[#9b9b9b]">
+          <ClipboardCheck size={21} />
+          <span className="text-base font-semibold">
+            Exams
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[#f7f7f7]">
+          <CircleHelp size={22} />
+        </button>
+
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[#f7f7f7]">
+          <Bell size={22} />
+          <span className="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-[#ff5c2b] ring-2 ring-white" />
+        </button>
+
+        <button className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-[#f7f7f7]">
+          <Sparkles size={21} />
+        </button>
+
+        <div className="ml-2 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#262626] text-white">
+            <UserRound size={18} />
+          </div>
+
+          <span className="hidden text-[15px] font-semibold text-[#303030] xl:block">
+            Karthikeshwar
+          </span>
+
+          <ChevronDown
+            size={18}
+            className="hidden text-[#535353] xl:block"
+          />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ProcessingScreen() {
+  return (
+    <>
+      {/* MOBILE LOADING */}
+      <div className="h-screen overflow-hidden bg-[#efefef] px-3 py-3 text-[#262626] lg:hidden">
+        <MobileHeader />
+
+        <main className="mt-4 flex h-[calc(100vh-104px)] items-center justify-center rounded-[30px] bg-white shadow-sm">
+          <div className="-mt-12 flex flex-col items-center text-center">
+            <img
+              src="/loading-sparkles.png"
+              alt=""
+              aria-hidden="true"
+              className="h-[155px] w-auto object-contain"
+            />
+
+            <h2 className="mt-5 text-[34px] font-bold tracking-[-0.035em] text-[#323232]">
+              Extracting...
+            </h2>
+
+            <p className="mt-2 text-[22px] text-[#777777]">
+              This may take a while
+            </p>
+          </div>
+        </main>
+      </div>
+
+      {/* DESKTOP LOADING */}
+      <div className="hidden min-h-screen bg-[#f5f5f5] text-[#262626] lg:block">
+        <TopBar />
+
+        <div className="flex min-h-[calc(100vh-72px)] gap-5 p-5">
+          <CollapsedSidebar />
+
+          <main className="flex min-w-0 flex-1 items-center justify-center rounded-[28px] bg-white shadow-sm">
+            <div className="flex flex-col items-center text-center">
+              <div className="flex h-[150px] items-center justify-center">
+                <img
+                  src="/loading-sparkles.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-[118px] w-auto object-contain"
+                />
+              </div>
+
+              <h2 className="mt-2 text-[26px] font-bold tracking-[-0.02em] text-[#2f2f2f]">
+                Extracting...
+              </h2>
+
+              <p className="mt-2 text-[17px] text-[#777777]">
+                This may take a while
+              </p>
+            </div>
+          </main>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -501,26 +675,21 @@ function ResultsScreen({
     ) || analysis.questions[0];
 
   const [selectedId, setSelectedId] =
-    useState(
-      firstQuestion?.id || ""
-    );
+    useState(firstQuestion?.id || "");
 
   const [expandedId, setExpandedId] =
     useState<string | null>(
       firstQuestion?.id || null
     );
 
+  const [expandAll, setExpandAll] =
+    useState(false);
+
   const [
     selectedUnmatchedIndex,
     setSelectedUnmatchedIndex,
   ] = useState<number | null>(null);
 
-  /*
-    NEW:
-    True only when the teacher manually
-    chooses to inspect the full answer sheet
-    for an unanswered question.
-  */
   const [
     viewingFullAnswerSheet,
     setViewingFullAnswerSheet,
@@ -531,6 +700,38 @@ function ResultsScreen({
 
   const [pageWidth, setPageWidth] =
     useState(680);
+
+  const [mobileTab, setMobileTab] =
+    useState<"questions" | "answers">("questions");
+
+  useEffect(() => {
+    const syncPageWidth = () => {
+      if (window.innerWidth < 1024) {
+        setPageWidth(
+          Math.max(
+            300,
+            Math.min(
+              window.innerWidth - 40,
+              720
+            )
+          )
+        );
+      }
+    };
+
+    syncPageWidth();
+
+    window.addEventListener(
+      "resize",
+      syncPageWidth
+    );
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        syncPageWidth
+      );
+  }, []);
 
   const selectedQuestion =
     analysis.questions.find(
@@ -569,8 +770,7 @@ function ResultsScreen({
       ? Array.from(
           new Set(
             selectedQuestion.regions.map(
-              (region) =>
-                region.page
+              (region) => region.page
             )
           )
         )
@@ -579,19 +779,9 @@ function ResultsScreen({
   const shouldShowNoAnswer =
     mode === "separate" &&
     !selectedUnmatched &&
-    selectedQuestion.status ===
-      "unanswered" &&
+    selectedQuestion.status === "unanswered" &&
     !viewingFullAnswerSheet;
 
-  /*
-    When manually viewing the answer sheet,
-    render every PDF page.
-
-    If numPages has not loaded yet, render
-    page 1 first. PdfViewer will then report
-    the page count and React will render
-    the entire PDF.
-  */
   const fullAnswerSheetPages =
     numPages > 0
       ? Array.from(
@@ -617,11 +807,6 @@ function ResultsScreen({
               ]
             : [];
 
-  /*
-    When manually reviewing the full answer
-    sheet, deliberately disable AI highlight
-    boxes. It becomes a clean manual PDF view.
-  */
   const viewerRegions =
     viewingFullAnswerSheet ||
     selectedUnmatched
@@ -638,10 +823,14 @@ function ResultsScreen({
     question: Question
   ) => {
     setViewingFullAnswerSheet(false);
-
     setSelectedUnmatchedIndex(null);
-
     setSelectedId(question.id);
+
+    if (expandAll) {
+      setExpandAll(false);
+      setExpandedId(question.id);
+      return;
+    }
 
     setExpandedId((current) =>
       current === question.id
@@ -654,598 +843,854 @@ function ResultsScreen({
     index: number
   ) => {
     setViewingFullAnswerSheet(false);
-
     setSelectedUnmatchedIndex(index);
-
     setExpandedId(null);
   };
 
   const zoomIn = () => {
     setPageWidth((value) =>
-      Math.min(
-        value + 80,
-        1100
-      )
+      Math.min(value + 80, 1100)
     );
   };
 
   const zoomOut = () => {
+    const minimum =
+      typeof window !== "undefined" &&
+      window.innerWidth < 1024
+        ? 300
+        : 420;
+
     setPageWidth((value) =>
-      Math.max(
-        value - 80,
-        420
-      )
+      Math.max(value - 80, minimum)
     );
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-[#f5f5f6] text-[#202124]">
-      <header className="flex h-[76px] items-center justify-between border-b border-[#e7e7e9] bg-white px-6">
-        <div className="flex items-center gap-4">
+    <div className="h-screen overflow-hidden bg-[#eeeeee] text-[#252525] lg:bg-[#f5f5f5]">
+      <div className="lg:hidden">
+        <MobileHeader onBack={onBack} />
+      </div>
+
+      <div className="hidden lg:block">
+        <TopBar onBack={onBack} />
+      </div>
+
+      <div className="px-3 pt-3 lg:hidden">
+        <div className="grid grid-cols-2 rounded-full bg-white p-1.5 shadow-sm">
           <button
-            onClick={onBack}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e7e7e9]"
+            type="button"
+            onClick={() =>
+              setMobileTab("questions")
+            }
+            className={`rounded-full px-4 py-3 text-[17px] font-semibold transition ${
+              mobileTab === "questions"
+                ? "bg-[#303030] text-white shadow-md"
+                : "text-[#777777]"
+            }`}
           >
-            <ArrowLeft size={18} />
+            Questions
           </button>
 
-          <div>
-            <h1 className="font-semibold">
-              Assessment Results
-            </h1>
-
-            <p className="text-xs text-[#777980]">
-              {analysis.totalQuestions}{" "}
-              questions extracted
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setMobileTab("answers")
+            }
+            className={`rounded-full px-4 py-3 text-[17px] font-semibold transition ${
+              mobileTab === "answers"
+                ? "bg-[#303030] text-white shadow-md"
+                : "text-[#777777]"
+            }`}
+          >
+            Answer Sheet
+          </button>
         </div>
+      </div>
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-[#fff4ef] px-4 py-2">
-            <p className="text-[10px] font-semibold uppercase text-[#a35a3e]">
-              Overall Score
-            </p>
+      <div className="flex h-[calc(100vh-148px)] gap-3 p-3 lg:h-[calc(100vh-72px)] lg:gap-4 lg:p-4">
+        <CollapsedSidebar />
 
-            <div className="flex items-baseline gap-1">
-              <span className="text-lg font-bold text-[#ff6b35]">
-                {
-                  analysis.totalAwardedMarks
-                }
-              </span>
+        <main className="grid min-w-0 flex-1 grid-cols-1 overflow-hidden rounded-[26px] bg-white shadow-sm lg:grid-cols-[44%_56%]">
+          <section className={`${mobileTab === "questions" ? "flex" : "hidden"} min-h-0 flex-col border-r border-[#ececec] bg-[#eeeeee] lg:flex lg:bg-white`}>
+            <div className="shrink-0 px-4 py-4 lg:border-b lg:border-[#ededed]">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-center text-[15px] font-bold text-[#2d2d2d] lg:text-left">
+                    Extracted Questions{" "}
+                    <span className="font-semibold text-[#4f4f4f]">
+                      (from question paper)
+                    </span>
+                  </h2>
 
-              <span className="text-xs text-[#777980]">
-                /{" "}
-                {
-                  analysis.totalMaximumMarks
-                }
-              </span>
+                  <p className="mt-1 hidden text-[11px] text-[#8b8b8b] lg:block">
+                    {answeredCount}/{analysis.totalQuestions} answered
+                    <span className="mx-1.5">•</span>
+                    Overall score {analysis.totalAwardedMarks}/{analysis.totalMaximumMarks} ({percentage}%)
+                  </p>
+                </div>
 
-              <span className="ml-1 text-xs font-semibold">
-                ({percentage}%)
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-lg bg-[#f4f4f5] px-3 py-2 text-sm">
-            <FileText size={16} />
-
-            <span className="max-w-[220px] truncate">
-              {pdfFile.name}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <div className="grid h-[calc(100vh-76px)] grid-cols-1 xl:grid-cols-[46%_54%]">
-        {/* LEFT PANEL */}
-
-        <section className="flex min-h-0 flex-col border-r border-[#e4e4e7] bg-white">
-          <div className="shrink-0 border-b border-[#ececef] px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="font-semibold">
-                  Extracted Questions
-                </h2>
-
-                <p className="mt-1 text-xs text-[#85878d]">
-                  Select a question to
-                  view its mapped answer
-                  and AI evaluation.
-                </p>
-              </div>
-
-              <div className="rounded-full bg-[#f2f2f3] px-3 py-1 text-xs font-medium">
-                {answeredCount}/
-                {analysis.totalQuestions}{" "}
-                answered
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExpandAll((current) => !current);
+                    setExpandedId(null);
+                  }}
+                  className="hidden shrink-0 rounded-full bg-[#f4f4f4] px-4 py-2 text-xs font-bold text-[#424242] transition hover:bg-[#ebebeb] lg:block"
+                >
+                  {expandAll ? "Collapse All" : "Expand All"}
+                </button>
               </div>
             </div>
-          </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            <div className="space-y-3">
-              {analysis.questions.map(
-                (question) => {
-                  const isSelected =
-                    selectedUnmatchedIndex ===
-                      null &&
-                    selectedId ===
-                      question.id;
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 lg:p-3">
+              <div className="space-y-2.5">
+                {analysis.questions.map(
+                  (question) => {
+                    const isSelected =
+                      selectedUnmatchedIndex ===
+                        null &&
+                      selectedId ===
+                        question.id;
 
-                  const isExpanded =
-                    expandedId ===
-                    question.id;
+                    const isExpanded =
+                      expandAll ||
+                      expandedId ===
+                        question.id;
 
-                  const scorePercentage =
-                    question.maxMarks > 0
-                      ? (question.awardedMarks /
-                          question.maxMarks) *
-                        100
-                      : 0;
+                    const scorePercentage =
+                      question.maxMarks > 0
+                        ? (question.awardedMarks /
+                            question.maxMarks) *
+                          100
+                        : 0;
 
-                  return (
-                    <div
-                      key={question.id}
-                      className={`rounded-2xl border p-4 transition ${
-                        isSelected
-                          ? "border-[#ff6b35] bg-[#fff9f6] shadow-sm"
-                          : "border-[#e9e9ec] bg-white"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleQuestionClick(
-                            question
-                          )
-                        }
-                        className="w-full text-left"
+                    return (
+                      <div
+                        key={question.id}
+                        className={`rounded-[16px] border transition ${
+                          isSelected
+                            ? "border-[1.5px] border-[#ff6533] bg-white"
+                            : "border-[#e9e9e9] bg-white"
+                        }`}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex min-w-0 flex-1 gap-3">
-                            <div
-                              className={`flex h-8 min-w-8 items-center justify-center rounded-lg text-sm font-semibold ${
-                                isSelected
-                                  ? "bg-[#ff6b35] text-white"
-                                  : "bg-[#f2f2f3] text-[#55575d]"
-                              }`}
-                            >
-                              {
-                                question.number
-                              }
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleQuestionClick(
+                              question
+                            )
+                          }
+                          className="w-full px-3.5 py-3 text-left"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 flex-1 gap-3">
+                              <div
+                                className={`flex h-8 min-w-8 items-center justify-center rounded-full text-xs font-bold shadow-sm ${
+                                  isSelected
+                                    ? "bg-[#ff6331] text-white"
+                                    : "bg-[#303030] text-white"
+                                }`}
+                              >
+                                {question.number}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[13px] font-medium leading-5 text-[#303030]">
+                                  {question.questionText}
+                                </p>
+
+                              </div>
                             </div>
 
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium leading-6">
-                                {
-                                  question.questionText
+                            <div className="flex shrink-0 items-center gap-3">
+                              <ScoreBadge
+                                awarded={
+                                  question.awardedMarks
                                 }
+                                maximum={
+                                  question.maxMarks
+                                }
+                                percentage={
+                                  scorePercentage
+                                }
+                              />
+
+                              <ChevronDown
+                                size={17}
+                                className={`transition-transform ${
+                                  isExpanded
+                                    ? "rotate-180 text-[#ff6331]"
+                                    : "text-[#8d8d8d]"
+                                }`}
+                              />
+                            </div>
+                          </div>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="space-y-4 border-t border-[#f0dfd7] px-3.5 pb-3.5 pt-3.5">
+                            <div className="rounded-[14px] bg-[#f7f7f7] p-4">
+                              <div className="mb-2 flex items-center justify-between gap-3">
+                                <p className="text-xs font-bold text-[#373737]">
+                                  AI Feedback
+                                </p>
+
+                                <span className="text-[10px] capitalize text-[#909090]">
+                                  {question.gradingConfidence} confidence
+                                </span>
+                              </div>
+
+                              <p className="text-[12px] leading-5 text-[#575757]">
+                                {question.feedback}
                               </p>
 
-                              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                              <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px]">
                                 <span
-                                  className={`rounded-full px-2.5 py-1 ${
-                                    question.status ===
-                                    "answered"
+                                  className={`rounded-full px-2.5 py-1 font-semibold ${
+                                    question.status === "answered"
                                       ? "bg-emerald-50 text-emerald-700"
-                                      : "bg-[#f1f1f2] text-[#707278]"
+                                      : "bg-[#ececec] text-[#707070]"
                                   }`}
                                 >
-                                  {question.status ===
-                                  "answered"
-                                    ? "Answered"
-                                    : "Unanswered"}
+                                  {question.status === "answered" ? "Answered" : "Unanswered"}
                                 </span>
 
-                                {question.status ===
-                                  "answered" && (
-                                  <span className="text-[#777980]">
-                                    {
-                                      pagesToCount(
-                                        question
-                                      )
-                                    }{" "}
-                                    page
-                                    {pagesToCount(
-                                      question
-                                    ) === 1
-                                      ? ""
-                                      : "s"}
+                                {question.status === "answered" && (
+                                  <span className="text-[#8c8c8c]">
+                                    {pagesToCount(question)} mapped {pagesToCount(question) === 1 ? "page" : "pages"}
                                   </span>
                                 )}
                               </div>
                             </div>
-                          </div>
 
-                          <div className="flex shrink-0 items-center gap-3">
-                            <ScoreBadge
-                              awarded={
-                                question.awardedMarks
-                              }
-                              maximum={
-                                question.maxMarks
-                              }
-                              percentage={
-                                scorePercentage
-                              }
-                            />
+                            {(question.strengths.length >
+                              0 ||
+                              question.improvements.length >
+                                0 ||
+                              question.answerSummary) && (
+                              <div className="grid gap-4 rounded-[14px] bg-white p-3.5 ring-1 ring-[#ededed]">
+                                {question.strengths
+                                  .length > 0 && (
+                                  <div>
+                                    <p className="mb-2 text-xs font-bold text-emerald-700">
+                                      Strengths
+                                    </p>
 
-                            <ChevronDown
-                              size={17}
-                              className={`transition-transform ${
-                                isExpanded
-                                  ? "rotate-180 text-[#ff6b35]"
-                                  : "text-[#999ba0]"
-                              }`}
-                            />
-                          </div>
-                        </div>
-                      </button>
+                                    <div className="space-y-2">
+                                      {question.strengths.map(
+                                        (
+                                          strength,
+                                          index
+                                        ) => (
+                                          <div
+                                            key={
+                                              index
+                                            }
+                                            className="flex gap-2 text-sm leading-5 text-[#666666]"
+                                          >
+                                            <CheckCircle2
+                                              size={15}
+                                              className="mt-0.5 shrink-0 text-emerald-600"
+                                            />
 
-                      {isExpanded && (
-                        <div className="mt-4 space-y-5 border-t border-[#f1dacf] pt-4">
-                          <div>
-                            <div className="mb-2 flex items-center justify-between">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-[#a15e45]">
-                                AI Feedback
-                              </p>
-
-                              <span className="text-[11px] capitalize text-[#8b8d92]">
-                                {
-                                  question.gradingConfidence
-                                }{" "}
-                                confidence
-                              </span>
-                            </div>
-
-                            <p className="text-sm leading-6 text-[#56585f]">
-                              {
-                                question.feedback
-                              }
-                            </p>
-                          </div>
-
-                          {question.strengths
-                            .length > 0 && (
-                            <div>
-                              <p className="mb-2 text-xs font-semibold text-emerald-700">
-                                Strengths
-                              </p>
-
-                              <div className="space-y-2">
-                                {question.strengths.map(
-                                  (
-                                    strength,
-                                    index
-                                  ) => (
-                                    <div
-                                      key={
-                                        index
-                                      }
-                                      className="flex gap-2 text-sm leading-5 text-[#62646a]"
-                                    >
-                                      <CheckCircle2
-                                        size={
-                                          15
-                                        }
-                                        className="mt-0.5 shrink-0 text-emerald-600"
-                                      />
-
-                                      <span>
-                                        {
-                                          strength
-                                        }
-                                      </span>
+                                            <span>
+                                              {
+                                                strength
+                                              }
+                                            </span>
+                                          </div>
+                                        )
+                                      )}
                                     </div>
-                                  )
+                                  </div>
+                                )}
+
+                                {question.improvements
+                                  .length > 0 && (
+                                  <div>
+                                    <p className="mb-2 text-xs font-bold text-[#ba623f]">
+                                      Improvements
+                                    </p>
+
+                                    <ul className="space-y-2 pl-4 text-sm leading-5 text-[#666666]">
+                                      {question.improvements.map(
+                                        (
+                                          improvement,
+                                          index
+                                        ) => (
+                                          <li
+                                            key={
+                                              index
+                                            }
+                                            className="list-disc"
+                                          >
+                                            {
+                                              improvement
+                                            }
+                                          </li>
+                                        )
+                                      )}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {question.answerSummary && (
+                                  <div>
+                                    <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8b8d92]">
+                                      Answer Summary
+                                    </p>
+
+                                    <p className="text-xs leading-5 text-[#707278]">
+                                      {
+                                        question.answerSummary
+                                      }
+                                    </p>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                )}
+              </div>
 
-                          {question.improvements
-                            .length > 0 && (
-                            <div>
-                              <p className="mb-2 text-xs font-semibold text-[#ba623f]">
-                                Improvements
-                              </p>
+              {mode === "separate" &&
+                unmatchedAnswers.length > 0 && (
+                  <div className="mt-7">
+                    <div className="mb-3 flex items-center gap-2">
+                      <AlertTriangle
+                        size={16}
+                        className="text-amber-600"
+                      />
 
-                              <ul className="space-y-2 pl-4 text-sm leading-5 text-[#62646a]">
-                                {question.improvements.map(
-                                  (
-                                    improvement,
-                                    index
-                                  ) => (
-                                    <li
-                                      key={
-                                        index
-                                      }
-                                      className="list-disc"
-                                    >
-                                      {
-                                        improvement
-                                      }
-                                    </li>
-                                  )
-                                )}
-                              </ul>
-                            </div>
-                          )}
+                      <h3 className="text-sm font-bold">
+                        Unmatched Answers
+                      </h3>
 
-                          {question.answerSummary && (
-                            <div className="rounded-xl bg-white/70 p-3">
-                              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8b8d92]">
-                                Answer Summary
-                              </p>
-
-                              <p className="text-xs leading-5 text-[#707278]">
-                                {
-                                  question.answerSummary
-                                }
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                        {unmatchedAnswers.length}
+                      </span>
                     </div>
-                  );
-                }
-              )}
-            </div>
 
-            {/* UNMATCHED ANSWERS */}
+                    <p className="mb-3 text-xs leading-5 text-[#85878d]">
+                      Handwritten content was detected but could not be confidently matched to a question.
+                    </p>
 
-            {mode === "separate" &&
-              unmatchedAnswers.length >
-                0 && (
-                <div className="mt-7">
-                  <div className="mb-3 flex items-center gap-2">
-                    <AlertTriangle
-                      size={16}
-                      className="text-amber-600"
-                    />
+                    <div className="space-y-3">
+                      {unmatchedAnswers.map(
+                        (answer, index) => {
+                          const isSelected =
+                            selectedUnmatchedIndex ===
+                            index;
 
-                    <h3 className="text-sm font-semibold">
-                      Unmatched Answers
-                    </h3>
-
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                      {
-                        unmatchedAnswers.length
-                      }
-                    </span>
-                  </div>
-
-                  <p className="mb-3 text-xs leading-5 text-[#85878d]">
-                    Handwritten content
-                    was detected but could
-                    not be confidently
-                    matched to a question.
-                  </p>
-
-                  <div className="space-y-3">
-                    {unmatchedAnswers.map(
-                      (
-                        answer,
-                        index
-                      ) => {
-                        const isSelected =
-                          selectedUnmatchedIndex ===
-                          index;
-
-                        return (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() =>
-                              handleUnmatchedClick(
-                                index
-                              )
-                            }
-                            className={`w-full rounded-xl border p-4 text-left transition ${
-                              isSelected
-                                ? "border-amber-400 bg-amber-50"
-                                : "border-amber-200 bg-[#fffdf7]"
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-                                <FileQuestion
-                                  size={16}
-                                />
-                              </div>
-
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="text-sm font-semibold text-[#4f5055]">
-                                    {answer.detectedNumber
-                                      ? `Detected as ${answer.detectedNumber}`
-                                      : "Unknown answer"}
-                                  </p>
-
-                                  {answer.page && (
-                                    <span className="text-xs text-[#8a8c91]">
-                                      Page{" "}
-                                      {
-                                        answer.page
-                                      }
-                                    </span>
-                                  )}
+                          return (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() =>
+                                handleUnmatchedClick(
+                                  index
+                                )
+                              }
+                              className={`w-full rounded-xl border p-4 text-left transition ${
+                                isSelected
+                                  ? "border-amber-400 bg-amber-50"
+                                  : "border-amber-200 bg-[#fffdf7]"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                                  <FileQuestion
+                                    size={16}
+                                  />
                                 </div>
 
-                                {answer.summary && (
-                                  <p className="mt-2 text-xs leading-5 text-[#66686f]">
-                                    {
-                                      answer.summary
-                                    }
-                                  </p>
-                                )}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-sm font-semibold text-[#4f5055]">
+                                      {answer.detectedNumber
+                                        ? `Detected as ${answer.detectedNumber}`
+                                        : "Unknown answer"}
+                                    </p>
 
-                                {answer.reason && (
-                                  <p className="mt-2 text-xs font-medium text-amber-700">
-                                    {
-                                      answer.reason
-                                    }
-                                  </p>
-                                )}
+                                    {answer.page && (
+                                      <span className="text-xs text-[#8a8c91]">
+                                        Page{" "}
+                                        {answer.page}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {answer.summary && (
+                                    <p className="mt-2 text-xs leading-5 text-[#66686f]">
+                                      {answer.summary}
+                                    </p>
+                                  )}
+
+                                  {answer.reason && (
+                                    <p className="mt-2 text-xs font-medium text-amber-700">
+                                      {answer.reason}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      }
-                    )}
+                            </button>
+                          );
+                        }
+                      )}
+                    </div>
                   </div>
+                )}
+            </div>
+          </section>
+
+          <section className={`${mobileTab === "answers" ? "flex" : "hidden"} min-h-0 flex-col bg-[#ededed] lg:flex`}>
+            <div className="flex min-h-[72px] shrink-0 items-center justify-between bg-[#303030] px-4 py-3 text-white lg:min-h-[54px] lg:py-2.5">
+              <div className="hidden lg:block">
+                <h2 className="text-[14px] font-bold">
+                  Answer Sheet
+                </h2>
+
+                {viewingFullAnswerSheet ? (
+                  <p className="text-xs text-[#c7c7c7]">
+                    Manual review • Full answer sheet
+                  </p>
+                ) : selectedUnmatched ? (
+                  <p className="text-xs text-amber-300">
+                    Unmatched answer
+                    {selectedUnmatched.page
+                      ? ` • PDF page ${selectedUnmatched.page}`
+                      : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-[#c7c7c7]">
+                    Question {selectedQuestion.number}
+                    {selectedQuestion.status ===
+                      "answered" &&
+                      ` • ${questionAnswerPages.length} answer ${
+                        questionAnswerPages.length ===
+                        1
+                          ? "page"
+                          : "pages"
+                      }`}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex w-full items-center justify-between gap-2 lg:w-auto lg:justify-start">
+                {viewingFullAnswerSheet && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setViewingFullAnswerSheet(
+                        false
+                      )
+                    }
+                    className="mr-2 flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15"
+                  >
+                    <ArrowLeft
+                      size={14}
+                    />
+                    Back to Result
+                  </button>
+                )}
+
+                <button
+                  onClick={zoomOut}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white transition hover:bg-white/15"
+                >
+                  <ZoomOut size={17} />
+                </button>
+
+                <div className="min-w-[58px] text-center text-xs font-semibold">
+                  {Math.round(
+                    (pageWidth / 680) *
+                      100
+                  )}
+                  %
                 </div>
-              )}
-          </div>
-        </section>
 
-        {/* RIGHT PANEL */}
+                <button
+                  onClick={zoomIn}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white transition hover:bg-white/15"
+                >
+                  <ZoomIn size={17} />
+                </button>
 
-        <section className="flex min-h-0 flex-col bg-[#ececef]">
-          <div className="flex shrink-0 items-center justify-between border-b border-[#dddddf] bg-white px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold">
-                Answer Sheet
-              </h2>
+                <div className="ml-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-[#f1f1f1]">
+                  {viewingFullAnswerSheet
+                    ? numPages > 0
+                      ? `${numPages} pages`
+                      : "Loading..."
+                    : selectedQuestion.status === "answered"
+                      ? `${questionAnswerPages.length} mapped ${questionAnswerPages.length === 1 ? "page" : "pages"}`
+                      : numPages > 0
+                        ? `${numPages} pages`
+                        : "Loading..."}
+                </div>
+              </div>
+            </div>
 
-              {viewingFullAnswerSheet ? (
-                <p className="text-xs text-[#888a90]">
-                  Manual review • Full
-                  answer sheet
-                </p>
-              ) : selectedUnmatched ? (
-                <p className="text-xs text-amber-700">
-                  Unmatched answer
-                  {selectedUnmatched.page
-                    ? ` • PDF page ${selectedUnmatched.page}`
-                    : ""}
-                </p>
-              ) : (
-                <p className="text-xs text-[#888a90]">
-                  Question{" "}
-                  {
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto p-0 lg:p-5">
+              {shouldShowNoAnswer ? (
+                <NoAnswerState
+                  questionNumber={
                     selectedQuestion.number
                   }
-
-                  {selectedQuestion.status ===
-                    "answered" &&
-                    ` • ${questionAnswerPages.length} answer ${
-                      questionAnswerPages.length ===
-                      1
-                        ? "page"
-                        : "pages"
-                    }`}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {viewingFullAnswerSheet && (
-                <button
-                  type="button"
-                  onClick={() =>
+                  onViewAnswerSheet={() =>
                     setViewingFullAnswerSheet(
-                      false
-                    )
-                  }
-                  className="mr-2 flex items-center gap-2 rounded-lg border border-[#e1e1e4] bg-white px-3 py-2 text-xs font-medium text-[#55575d] hover:bg-[#f7f7f8]"
-                >
-                  <ArrowLeft
-                    size={14}
-                  />
-
-                  Back to Result
-                </button>
-              )}
-
-              <button
-                onClick={zoomOut}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e1e1e4] bg-white"
-              >
-                <ZoomOut size={17} />
-              </button>
-
-              <div className="min-w-[60px] text-center text-xs font-medium">
-                {Math.round(
-                  (pageWidth / 680) *
-                    100
-                )}
-                %
-              </div>
-
-              <button
-                onClick={zoomIn}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#e1e1e4] bg-white"
-              >
-                <ZoomIn size={17} />
-              </button>
-
-              <div className="ml-2 rounded-lg bg-[#f4f4f5] px-3 py-2 text-xs text-[#66686f]">
-                {numPages > 0
-                  ? `${numPages} PDF pages`
-                  : "Loading..."}
-              </div>
-            </div>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto p-5">
-            {shouldShowNoAnswer ? (
-              <NoAnswerState
-                questionNumber={
-                  selectedQuestion.number
-                }
-                onViewAnswerSheet={() =>
-                  setViewingFullAnswerSheet(
-                    true
-                  )
-                }
-              />
-            ) : pagesToRender.length >
-              0 ? (
-              <div className="mx-auto w-fit">
-                <PdfViewer
-                  file={pdfFile}
-                  pages={pagesToRender}
-                  regions={viewerRegions}
-                  questionNumber={
-                    viewerQuestionNumber
-                  }
-                  width={pageWidth}
-                  onLoadSuccess={(
-                    pages
-                  ) =>
-                    setNumPages(
-                      pages
+                      true
                     )
                   }
                 />
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="max-w-md rounded-2xl border border-[#dedee1] bg-white p-8 text-center shadow-sm">
-                  <FileQuestion
-                    size={32}
-                    className="mx-auto text-[#999ba0]"
+              ) : pagesToRender.length > 0 ? (
+                <div className="mx-auto w-fit">
+                  <PdfViewer
+                    file={pdfFile}
+                    pages={pagesToRender}
+                    regions={viewerRegions}
+                    questionNumber={
+                      viewerQuestionNumber
+                    }
+                    width={pageWidth}
+                    onLoadSuccess={(
+                      pages
+                    ) =>
+                      setNumPages(
+                        pages
+                      )
+                    }
                   />
-
-                  <h3 className="mt-4 font-semibold">
-                    Page unavailable
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-[#777980]">
-                    The AI identified
-                    this content, but no
-                    valid answer-sheet
-                    page was returned.
-                  </p>
                 </div>
-              </div>
-            )}
-          </div>
-        </section>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <div className="max-w-md rounded-2xl border border-[#dedee1] bg-white p-8 text-center shadow-sm">
+                    <FileQuestion
+                      size={32}
+                      className="mx-auto text-[#999ba0]"
+                    />
+
+                    <h3 className="mt-4 font-semibold">
+                      Page unavailable
+                    </h3>
+
+                    <p className="mt-2 text-sm leading-6 text-[#777980]">
+                      The AI identified this content, but no valid answer-sheet page was returned.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
       </div>
+    </div>
+  );
+}
+
+function TopBar({
+  onBack,
+}: {
+  onBack?: () => void;
+}) {
+  return (
+    <header className="mx-5 mt-4 flex h-14 items-center justify-between rounded-[22px] bg-white px-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#2f2f2f] transition hover:bg-[#f4f4f4]"
+        >
+          <ArrowLeft size={24} />
+        </button>
+
+        <div className="h-6 w-px bg-[#eeeeee]" />
+
+        <div className="flex items-center gap-2 text-[#8a8a8a]">
+          <ClipboardCheck size={21} />
+          <span className="whitespace-nowrap text-base font-semibold">
+            Exams
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f7f7f7]">
+          <CircleHelp size={22} />
+        </button>
+
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f7f7f7]">
+          <Bell size={22} />
+          <span className="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-[#ff5c2b] ring-2 ring-white" />
+        </button>
+
+        <button className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[#f7f7f7]">
+          <Sparkles size={21} />
+        </button>
+
+        <div className="ml-2 flex items-center gap-3 rounded-full px-2 py-1">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#262626] text-white">
+            <UserRound size={18} />
+          </div>
+
+          <span className="hidden text-base font-semibold text-[#303030] lg:block">
+            Karthikeshwar
+          </span>
+
+          <ChevronDown
+            size={18}
+            className="hidden text-[#535353] lg:block"
+          />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function FullSidebar() {
+  return (
+    <aside className="hidden w-[300px] shrink-0 flex-col rounded-[26px] bg-white p-5 shadow-[0_12px_36px_rgba(0,0,0,0.08)] lg:flex">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[#2e2e2e] text-white">
+            <span className="text-2xl font-black tracking-[-0.08em]">
+              V
+            </span>
+          </div>
+
+          <span className="text-2xl font-bold tracking-[-0.04em]">
+            VedaAI
+          </span>
+        </div>
+
+        <PanelLeft
+          size={20}
+          className="text-[#6f6f6f]"
+        />
+      </div>
+
+      <div className="mt-10 rounded-full border-[3px] border-[#ee7855] bg-[#2d2d2d] px-4 py-4 text-center text-white shadow-inner">
+        <div className="flex items-center justify-center gap-2">
+          <Sparkles size={18} />
+          <span className="text-lg font-semibold">
+            AI Teacher&apos;s Toolkit
+          </span>
+        </div>
+      </div>
+
+      <nav className="mt-10 space-y-2">
+        <SidebarRow
+          icon={<HomeIcon size={21} />}
+          label="Home"
+        />
+        <SidebarRow
+          icon={<Presentation size={21} />}
+          label="My Classroom"
+        />
+        <SidebarRow
+          icon={<ClipboardList size={21} />}
+          label="Assignments"
+        />
+        <SidebarRow
+          icon={<ClipboardCheck size={21} />}
+          label="Exams"
+          active
+        />
+        <SidebarRow
+          icon={<Clock3 size={21} />}
+          label="My Library"
+        />
+      </nav>
+
+      <div className="mt-auto">
+        <SidebarRow
+          icon={<Settings size={21} />}
+          label="Settings"
+        />
+
+        <div className="mt-5 rounded-[20px] bg-[#f1f1f1] p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white">
+              <Building2
+                size={22}
+                className="text-[#616161]"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[#313131]">
+                Delhi Public School
+              </p>
+              <p className="mt-1 text-xs text-[#686868]">
+                Bokaro Steel City
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function CollapsedSidebar() {
+  return (
+    <aside className="relative hidden w-[76px] shrink-0 flex-col items-center rounded-[24px] bg-white py-4 shadow-[0_14px_42px_rgba(0,0,0,0.18)] lg:flex">
+      <div className="pointer-events-none absolute inset-y-5 -right-8 w-10 rounded-full bg-black/10 blur-2xl" />
+
+      <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#2e2e2e] text-white shadow-sm">
+        <span className="text-xl font-black tracking-[-0.08em]">
+          V
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-7">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-[#ef7653] bg-[#2d2d2d] text-white shadow-[0_0_22px_rgba(239,118,83,0.28)]">
+          <Sparkles size={20} />
+        </div>
+      </div>
+
+      <nav className="relative z-10 mt-8 flex flex-col gap-3">
+        <RailIcon
+          icon={<HomeIcon size={19} />}
+        />
+
+        <RailIcon
+          icon={<Presentation size={19} />}
+        />
+
+        <RailIcon
+          icon={<ClipboardList size={19} />}
+        />
+
+        <RailIcon
+          icon={<ClipboardCheck size={19} />}
+          active
+        />
+
+        <RailIcon
+          icon={<Clock3 size={19} />}
+        />
+      </nav>
+
+      <div className="relative z-10 mt-auto flex flex-col items-center gap-4">
+        <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#f1f1f1]">
+          <Building2
+            size={20}
+            className="text-[#6c6c6c]"
+          />
+        </div>
+
+        <button
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-[#333333] transition hover:bg-[#f2f2f2]"
+          aria-label="Expand sidebar"
+        >
+          <ChevronsRight size={23} />
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function TeacherOrbit() {
+  return (
+    <div className="flex h-[118px] items-center justify-center lg:h-[142px]">
+      <img
+        src="/teacher-toolkit.png"
+        alt="AI teacher assistant"
+        className="h-[118px] w-auto object-contain lg:h-[142px]"
+      />
+    </div>
+  );
+}
+
+function FigmaUploadZone({
+  title,
+  file,
+  inputRef,
+  onFile,
+  onRemove,
+}: {
+  title: string;
+  file: File | null;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onFile: (file: File) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="relative">
+      {!file ? (
+        <button
+          type="button"
+          onClick={() =>
+            inputRef.current?.click()
+          }
+          className="flex min-h-[205px] w-full flex-col items-center justify-center rounded-[22px] border-2 border-dashed border-[#c9c9c9] bg-white px-6 text-center transition hover:border-[#ff8a5d] hover:bg-[#fffaf7] lg:min-h-[205px] lg:rounded-[20px]"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f0f0f0]">
+            <Upload
+              size={24}
+              className="text-[#343434]"
+            />
+          </div>
+
+          <p className="mt-5 text-[16px] font-semibold text-[#313131]">
+            Upload{" "}
+            <span className="text-[#ff5a2a]">
+              {title}
+            </span>
+          </p>
+
+          <p className="mt-1 text-xs text-[#9f9f9f]">
+            Max 10MB
+          </p>
+        </button>
+      ) : (
+        <div className="flex min-h-[205px] items-center justify-center rounded-[22px] border-2 border-dashed border-[#c9c9c9] bg-white p-4 lg:min-h-[205px] lg:rounded-[20px]">
+          <div className="relative flex w-full max-w-[390px] items-center gap-3 rounded-2xl bg-[#f7f7f7] px-4 py-4 shadow-sm ring-1 ring-[#eeeeee] lg:max-w-[360px]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#fff0e9] text-[#ff5e2a]">
+              <FileText size={22} />
+            </div>
+
+            <div className="min-w-0 flex-1 text-left">
+              <p className="truncate text-[14px] font-semibold text-[#363636]">
+                {file.name}
+              </p>
+              <p className="mt-1 text-xs text-[#8f8f8f]">
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onRemove}
+              className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#5a5a5a] text-white shadow-md transition hover:bg-[#4b4b4b] lg:static lg:h-8 lg:w-8 lg:bg-white lg:text-[#5e5e5e] lg:ring-1 lg:ring-[#e7e7e7]"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg"
+        className="hidden"
+        onChange={(event) => {
+          const selectedFile =
+            event.target.files?.[0];
+
+          if (selectedFile) {
+            onFile(selectedFile);
+          }
+
+          event.target.value = "";
+        }}
+      />
     </div>
   );
 }
@@ -1272,8 +1717,7 @@ function NoAnswerState({
         </h3>
 
         <p className="mt-2 text-sm leading-6 text-[#777980]">
-          No handwritten answer could
-          be mapped to Question{" "}
+          No handwritten answer could be mapped to Question{" "}
           <span className="font-semibold text-[#4f5055]">
             {questionNumber}
           </span>
@@ -1281,12 +1725,8 @@ function NoAnswerState({
         </p>
 
         <div className="mt-5 rounded-xl bg-[#f7f7f8] px-4 py-3 text-xs leading-5 text-[#777980]">
-          This question is treated as
-          unanswered and receives 0
-          marks.
+          This question is treated as unanswered and receives 0 marks.
         </div>
-
-        {/* NEW BUTTON */}
 
         <button
           type="button"
@@ -1294,14 +1734,11 @@ function NoAnswerState({
           className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-[#dedee1] bg-white px-5 py-2.5 text-sm font-semibold text-[#44464c] shadow-sm transition hover:bg-[#f7f7f8]"
         >
           <Eye size={17} />
-
           View Answer Sheet
         </button>
 
         <p className="mt-2 text-[11px] leading-4 text-[#96989d]">
-          Manually review the uploaded
-          answer sheet to verify the
-          result.
+          Manually review the uploaded answer sheet to verify the result.
         </p>
       </div>
     </div>
@@ -1313,8 +1750,7 @@ function pagesToCount(
 ) {
   return new Set(
     question.regions.map(
-      (region) =>
-        region.page
+      (region) => region.page
     )
   ).size;
 }
@@ -1343,127 +1779,14 @@ function ScoreBadge({
 
   return (
     <div
-      className={`rounded-lg px-2.5 py-1.5 text-sm font-semibold ${className}`}
+      className={`rounded-full px-3 py-1.5 text-sm font-bold ${className}`}
     >
       {awarded}/{maximum}
     </div>
   );
 }
 
-function UploadCard({
-  title,
-  subtitle,
-  file,
-  inputRef,
-  onFile,
-  onRemove,
-}: {
-  title: string;
-  subtitle: string;
-  file: File | null;
-
-  inputRef:
-    React.RefObject<HTMLInputElement | null>;
-
-  onFile: (file: File) => void;
-
-  onRemove: () => void;
-}) {
-  return (
-    <div className="rounded-2xl border border-[#e4e4e7] bg-white p-5 shadow-sm">
-      <div className="mb-5">
-        <h2 className="font-semibold">
-          {title}
-        </h2>
-
-        <p className="mt-1 text-sm text-[#7c7e84]">
-          {subtitle}
-        </p>
-      </div>
-
-      {!file ? (
-        <button
-          type="button"
-          onClick={() =>
-            inputRef.current?.click()
-          }
-          className="flex min-h-[210px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-[#d7d7da] bg-[#fafafa] px-5 text-center"
-        >
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
-            <Upload
-              size={20}
-              className="text-[#ff6b35]"
-            />
-          </div>
-
-          <p className="text-sm font-medium">
-            Click to upload
-          </p>
-
-          <p className="mt-2 text-xs text-[#92949a]">
-            PDF, PNG, JPG or JPEG
-          </p>
-
-          <p className="mt-1 text-xs text-[#b0b1b6]">
-            Maximum size 10 MB
-          </p>
-        </button>
-      ) : (
-        <div className="flex min-h-[210px] items-center justify-center rounded-xl border border-[#e6e6e8] bg-[#fafafa] p-5">
-          <div className="w-full">
-            <div className="flex items-center gap-3 rounded-xl bg-white p-4 shadow-sm">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#fff1eb] text-[#ff6b35]">
-                <FileText size={19} />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
-                  {file.name}
-                </p>
-
-                <p className="mt-1 text-xs text-[#92949a]">
-                  {(
-                    file.size /
-                    1024 /
-                    1024
-                  ).toFixed(2)}{" "}
-                  MB
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={onRemove}
-                className="flex h-8 w-8 items-center justify-center rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".pdf,.png,.jpg,.jpeg"
-        className="hidden"
-        onChange={(event) => {
-          const selectedFile =
-            event.target.files?.[0];
-
-          if (selectedFile) {
-            onFile(selectedFile);
-          }
-
-          event.target.value = "";
-        }}
-      />
-    </div>
-  );
-}
-
-function SidebarItem({
+function SidebarRow({
   icon,
   label,
   active = false,
@@ -1474,15 +1797,36 @@ function SidebarItem({
 }) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${
+      className={`flex items-center gap-3 rounded-[14px] px-4 py-3 text-base font-semibold ${
         active
-          ? "bg-[#fff2ed] font-medium text-[#db5728]"
-          : "text-[#66686f]"
+          ? "bg-[#f0f0f0] text-[#303030]"
+          : "text-[#8a8a8a]"
+      }`}
+    >
+      <span className={active ? "text-[#303030]" : ""}>
+        {icon}
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function RailIcon({
+  icon,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  active?: boolean;
+}) {
+  return (
+    <div
+      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+        active
+          ? "bg-[#f0f0f0] text-[#2e2e2e]"
+          : "text-[#8c8c8c]"
       }`}
     >
       {icon}
-
-      <span>{label}</span>
     </div>
   );
 }
