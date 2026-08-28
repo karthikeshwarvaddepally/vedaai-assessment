@@ -499,46 +499,46 @@ function MobileHeader({
   onBack?: () => void;
 }) {
   return (
-    <header className="flex h-[72px] items-center justify-between rounded-[26px] bg-white px-4 shadow-[0_8px_26px_rgba(0,0,0,0.05)]">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="flex h-[72px] items-center justify-between gap-2 rounded-[26px] bg-white px-3 shadow-[0_8px_26px_rgba(0,0,0,0.05)] sm:px-4">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
         <button
           type="button"
           onClick={onBack}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#252525]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#252525] sm:h-10 sm:w-10"
           aria-label="Go back"
         >
-          <ArrowLeft size={27} />
+          <ArrowLeft size={25} />
         </button>
 
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-[#303030] text-white">
-            <span className="text-xl font-black tracking-[-0.08em]">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#303030] text-white sm:h-10 sm:w-10 sm:rounded-[11px]">
+            <span className="text-lg font-black tracking-[-0.08em] sm:text-xl">
               V
             </span>
           </div>
 
-          <span className="text-[24px] font-bold tracking-[-0.035em]">
+          <span className="truncate text-[21px] font-bold tracking-[-0.035em] sm:text-[24px]">
             VedaAI
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#f5f5f5]">
-          <Bell size={24} />
-          <span className="absolute right-1.5 top-0.5 h-3 w-3 rounded-full bg-[#ff5c2b] ring-2 ring-white" />
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <button className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#f5f5f5] sm:h-11 sm:w-11">
+          <Bell size={22} />
+          <span className="absolute right-1 top-0.5 h-3 w-3 rounded-full bg-[#ff5c2b] ring-2 ring-white sm:right-1.5" />
         </button>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#303030] text-white">
-          <UserRound size={19} />
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#303030] text-white sm:h-11 sm:w-11">
+          <UserRound size={18} />
         </div>
 
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center text-[#252525]"
+          className="flex h-10 w-10 items-center justify-center text-[#252525] sm:h-11 sm:w-11"
           aria-label="Open menu"
         >
-          <Menu size={29} />
+          <Menu size={27} />
         </button>
       </div>
     </header>
