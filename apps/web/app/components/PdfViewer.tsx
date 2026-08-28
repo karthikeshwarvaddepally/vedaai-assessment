@@ -23,6 +23,7 @@ type PdfViewerProps = {
   pages: number[];
   regions: AnswerRegion[];
   questionNumber: string;
+  highlightVariant?: "matched" | "unmatched";
   width: number;
   onLoadSuccess: (numPages: number) => void;
 };
@@ -32,6 +33,7 @@ export default function PdfViewer({
   pages,
   regions,
   questionNumber,
+  highlightVariant = "matched",
   width,
   onLoadSuccess,
 }: PdfViewerProps) {
@@ -182,6 +184,7 @@ export default function PdfViewer({
                   questionNumber={
                     questionNumber
                   }
+                  variant={highlightVariant}
                 />
               </>
             )}
@@ -328,6 +331,7 @@ export default function PdfViewer({
                         questionNumber={
                           questionNumber
                         }
+                        variant={highlightVariant}
                       />
                     </>
                   )}
@@ -344,9 +348,11 @@ export default function PdfViewer({
 function AnswerHighlight({
   region,
   questionNumber,
+  variant,
 }: {
   region: AnswerRegion;
   questionNumber: string;
+  variant: "matched" | "unmatched";
 }) {
   const { box } = region;
 
@@ -370,9 +376,16 @@ function AnswerHighlight({
       10
     }%`;
 
+  const isUnmatched =
+    variant === "unmatched";
+
   return (
     <div
-      className="pointer-events-none absolute border-2 border-emerald-500 bg-emerald-400/15"
+      className={`pointer-events-none absolute border-2 ${
+        isUnmatched
+          ? "border-amber-500 bg-amber-300/20"
+          : "border-emerald-500 bg-emerald-400/15"
+      }`}
       style={{
         top,
         left,
@@ -380,8 +393,16 @@ function AnswerHighlight({
         height,
       }}
     >
-      <div className="absolute -top-6 left-0 rounded-t-md bg-emerald-600 px-2 py-1 text-[11px] font-semibold text-white">
-        Q{questionNumber}
+      <div
+        className={`absolute -top-6 left-0 rounded-t-md px-2 py-1 text-[11px] font-semibold text-white ${
+          isUnmatched
+            ? "bg-amber-600"
+            : "bg-emerald-600"
+        }`}
+      >
+        {isUnmatched
+          ? "Unmatched"
+          : `Q${questionNumber}`}
       </div>
     </div>
   );

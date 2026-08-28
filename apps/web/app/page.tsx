@@ -68,6 +68,7 @@ type Question = {
   maxMarks: number;
   awardedMarks: number;
   status: "answered" | "unanswered";
+  mappingMethod?: "explicit_label" | "content" | null;
   answerSummary: string | null;
   regions: AnswerRegion[];
   gradingConfidence: "high" | "medium" | "low";
@@ -81,6 +82,7 @@ type UnmatchedAnswer = {
   detectedNumber?: string | null;
   summary?: string;
   reason?: string;
+  regions?: AnswerRegion[];
 };
 
 type AnalysisResult = {
@@ -790,13 +792,25 @@ function ResultsScreen({
         )
       : [1];
 
+  const unmatchedPages =
+    selectedUnmatched?.regions &&
+    selectedUnmatched.regions.length > 0
+      ? Array.from(
+          new Set(
+            selectedUnmatched.regions.map(
+              (region) => region.page
+            )
+          )
+        )
+      : selectedUnmatched?.page
+        ? [selectedUnmatched.page]
+        : [];
+
   const pagesToRender =
     viewingFullAnswerSheet
       ? fullAnswerSheetPages
       : selectedUnmatched
-        ? selectedUnmatched.page
-          ? [selectedUnmatched.page]
-          : []
+        ? unmatchedPages
         : selectedQuestion.status ===
               "answered" &&
             questionAnswerPages.length > 0
@@ -808,10 +822,11 @@ function ResultsScreen({
             : [];
 
   const viewerRegions =
-    viewingFullAnswerSheet ||
-    selectedUnmatched
+    viewingFullAnswerSheet
       ? []
-      : selectedQuestion.regions;
+      : selectedUnmatched
+        ? selectedUnmatched.regions || []
+        : selectedQuestion.regions;
 
   const viewerQuestionNumber =
     selectedUnmatched
@@ -1060,6 +1075,13 @@ function ResultsScreen({
                                     {pagesToCount(question)} mapped {pagesToCount(question) === 1 ? "page" : "pages"}
                                   </span>
                                 )}
+
+                                {question.status === "answered" &&
+                                  question.mappingMethod === "content" && (
+                                    <span className="rounded-full bg-sky-50 px-2.5 py-1 font-semibold text-sky-700 ring-1 ring-sky-100">
+                                      Unlabeled • mapped by content
+                                    </span>
+                                  )}
                               </div>
                             </div>
 
@@ -1354,6 +1376,11 @@ function ResultsScreen({
                     regions={viewerRegions}
                     questionNumber={
                       viewerQuestionNumber
+                    }
+                    highlightVariant={
+                      selectedUnmatched
+                        ? "unmatched"
+                        : "matched"
                     }
                     width={pageWidth}
                     onLoadSuccess={(
